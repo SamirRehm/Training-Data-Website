@@ -1,0 +1,7 @@
+name: "TrainingData"
+output_dir: "."
+navbar:
+  title: "Training Data"
+  left:
+    - text: "Home"
+      href: index.html
