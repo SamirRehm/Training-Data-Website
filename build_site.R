@@ -79,6 +79,7 @@ RunningData$DistanceStreams <- DistanceStreams
 RunningData$TimeStreams <- TimeStreams
 RunningData$VelocityStreams <- VelocityStreams
 OriginalRunningData <- RunningData
+pander::pandoc.t
 RunningDataList <- split(RunningData, RunningData$Week)
 save(RunningDataList, file = "data.RData")
 rmarkdown::render_site()

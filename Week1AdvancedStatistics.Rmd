@@ -1,7 +1,4 @@
 ---
-title: "Training Statistics"
-author: "Samir Rehmtulla"
-date: "February 26, 2018"
 output: 
   html_document:
     keep_md: true
@@ -20,10 +17,15 @@ library(plyr)
 library(sp)
 library(googleway)
 library(webshot)
+library(pander)
 knitr::opts_chunk$set(echo = TRUE)
 load("Data.RData")
 ```
+&nbsp;
+&nbsp;
+&nbsp;
 
+  
 ## Week `r weekOfPlan` Advanced Statistics
 
 
@@ -34,11 +36,12 @@ plots <- htmltools::tagList()
 RunningWeek <- RunningDataList[[weekOfPlan]]
 SteadyRuns <- RunningWeek[RunningWeek$RunType == "Steady",]
 for(i in 1:nrow(SteadyRuns)) {
-  p <- plot_ly(SteadyRuns, x = SteadyRuns$TimeStreams[[i]]/60, y = SteadyRuns$VelocityStreams[[i]], type = "scatter", mode = "lines+markers", name = "Raw Data")
+  p <- plot_ly(SteadyRuns, height = 250, x = SteadyRuns$TimeStreams[[i]]/60, y = SteadyRuns$VelocityStreams[[i]], type = "scatter", mode = "lines+markers", name = "Raw Data")
   smooth <- smooth.spline(SteadyRuns$TimeStreams[[i]]/60, SteadyRuns$VelocityStreams[[i]], spar = 1)
   smoothData <- data.frame(smooth$x, smooth$y)
   p <- p %>% add_trace(smoothData, x=smoothData$smooth.x, y=smoothData$smooth.y, name = 'Smoothened Data')
-  plots[[i]] <- list(as_widget(p), paste("Steady Score:", signif((1 - (1/(1+exp(-17* (sd(smoothData$smooth.y) -0.25))))) * 100, 2), "%"))
+  p <- p %>% layout(title = paste("Steady State Run on", SteadyRuns$Date[[i]], "-", "Steady Score:", signif((1 - (1/(1+exp(-17* (sd(smoothData$smooth.y) -0.25))))) * 100, 2), "%"), xaxis = list(title = "Time (minutes)"), yaxis = list(title = "Speed (m/s)"), margin = list(t = 60, b = 40))
+  plots[[i]] <- list(as_widget(p))
 }
 plots
 
