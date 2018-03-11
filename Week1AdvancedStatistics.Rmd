@@ -24,18 +24,22 @@ knitr::opts_chunk$set(echo = TRUE)
 load("Data.RData")
 ```
 
-## Week 1 Advanced Statistics
+## Week `r weekOfPlan` Advanced Statistics
 
-```{r advancedStats, echo=FALSE, warning=FALSE}
+
+### Steady State Workouts
+```{r advancedStats, echo=FALSE, warning=FALSE, results='asis'}
 plots <- htmltools::tagList()
 
 RunningWeek <- RunningDataList[[weekOfPlan]]
 SteadyRuns <- RunningWeek[RunningWeek$RunType == "Steady",]
 for(i in 1:nrow(SteadyRuns)) {
-  p <- plot_ly(SteadyRuns, x = SteadyRuns$DistanceStreams[[i]], y = SteadyRuns$VelocityStreams[[i]], type = "scatter", mode = "lines+markers")
-  plots[[i]] <- as_widget(p)
+  p <- plot_ly(SteadyRuns, x = SteadyRuns$TimeStreams[[i]]/60, y = SteadyRuns$VelocityStreams[[i]], type = "scatter", mode = "lines+markers", name = "Raw Data")
+  smooth <- smooth.spline(SteadyRuns$TimeStreams[[i]]/60, SteadyRuns$VelocityStreams[[i]], spar = 1)
+  smoothData <- data.frame(smooth$x, smooth$y)
+  p <- p %>% add_trace(smoothData, x=smoothData$smooth.x, y=smoothData$smooth.y, name = 'Smoothened Data')
+  plots[[i]] <- list(as_widget(p), paste("Steady Score:", signif((1 - (1/(1+exp(-17* (sd(smoothData$smooth.y) -0.25))))) * 100, 2), "%"))
 }
-
 plots
 
 ```
