@@ -1,7 +1,16 @@
 name: "TrainingData"
 output_dir: "."
+exclude: ["report_1.html", "report_2.html"]
 navbar:
   title: "Training Data"
   left:
     - text: "Home"
       href: index.html
+      
+    - text: "Advanced Statistics"
+      menu:
+        - text: "Week 1"
+          href: report_1.html
+        - text: "Week 2"
+          href: report_2.html
+      

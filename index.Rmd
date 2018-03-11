@@ -8,81 +8,14 @@ output:
 always_allow_html: yes
 ---
 
-```{r, echo = FALSE}
-knitr::opts_chunk$set(
-  fig.path = "README_figs/README-"
-)
-```
-
 ```{r setup, include=FALSE}
-library(httr)
-library(jsonlite)
 library(lubridate)
 library(plotly)
 library(stringr)
 library(plyr)
-library(leaflet)
 library(sp)
-library(data.table)
 library(googleway)
-rm(list=ls())
-options(stringsAsFactors = FALSE)
-RActivites <- fromJSON(rawToChar(GET(url = "https://www.strava.com/api/v3/athlete/activities?after=1519601753&per_page=80&access_token=738ba7d3a2a53c870f699ae5a297383eef11f537")$content))
-RActivites$start_date_local <- strtrim(RActivites$start_date_local, 10)
-
-steadyRuns <- grep("steady", RActivites$name, ignore.case = TRUE)
-restRuns <- grep("recovery", RActivites$name, ignore.case = TRUE)
-workRuns <- grep("work", RActivites$name, ignore.case = TRUE)
-tempoRuns <- grep("tempo", RActivites$name, ignore.case = TRUE)
-trackRuns <- grep("track", RActivites$name, ignore.case = TRUE)
-longRuns <- grep("Long", RActivites$name, ignore.case = TRUE)
-intenseRuns <- grep("intense", RActivites$name, ignore.case = TRUE)
-WarmupRuns <- grep("warm", RActivites$name, ignore.case = TRUE)
-CooldownRuns <- grep("cool", RActivites$name, ignore.case = TRUE)
-
-ids <- RActivites$id
-urlP1 <- rep("https://www.strava.com/api/v3/activities/", length(ids))
-urlP2 <- rep("?access_token=738ba7d3a2a53c870f699ae5a297383eef11f537", length(ids))
-PolylineURLs <- paste(urlP1, ids, urlP2, sep="")
-Polylines <- c()
-for(i in 1:length(PolylineURLs)) {
-  Activity <- fromJSON(rawToChar(GET(url = PolylineURLs[[i]])$content))$map
-  if(is.null(Activity$polyline))
-  { Polylines[[i]] <- "" } else { Polylines[[i]] <- Activity$polyline}
-}
-
-RunType <- vector(mode = "character", length = nrow(RActivites))
-for(i in 1:length(RunType)) {
-  if(i %in% steadyRuns) { RunType[[i]] <- "Steady"}
-  else if(i %in% intenseRuns) { RunType[[i]] <- "Intense" }
-  else if(i %in% tempoRuns) { RunType[[i]] <- "Tempo" }
-  else if(i %in% trackRuns) { RunType[[i]] <- "Track" }
-  else if (i %in% longRuns) { RunType[[i]] <- "Long"}
-  else if(i %in% workRuns) { RunType[[i]] <- 'Work' }
-  else if(i %in% restRuns) { RunType[[i]] <- "Rest" }
-  else if(i %in% WarmupRuns) { RunType[[i]] <- "Warm-up"}
-  else if(i %in% CooldownRuns) { RunType[[i]] <- "Cool-down"}
-  else { RunType[[i]] <- "Misc"}
-}
-
-Pace <- RActivites$moving_time/RActivites$distance/60*1000
-Pace <- paste("<b>", floor(Pace), ":", str_pad(round((Pace - floor(Pace))*60), 2, pad = "0"), "/km", "</b>", sep = "")
-
-RunningData <- data.frame(RActivites$start_date_local, RActivites$distance/1000.0, RActivites$moving_time, RunType, Pace, Polylines)
-RunningData <- rename(RunningData, c("RActivites.start_date_local" = "Date", "RActivites.distance.1000" = "Distance", "RActivites.moving_time" = "Time"))
-RunningData$Day <- weekdays(as.Date(RunningData$Date))
-i <- rep(RunningData$Date[[1]], 17)
-RunningData$Week <- ((as.numeric(difftime(RunningData$Date, i, units = "days"))) %/% 7) + 1
-
-RunningDataList <- split(RunningData, RunningData$Week)
-m <- list(
-  l = 40,
-  r = 40,
-  b = 30,
-  t = 70
-)
-map_key <- 'AIzaSyC2_ZQpyvUMYMm2FZh3HouwqavsnF8QRG4'
-lstPalette <- list(stroke_colour = colorRampPalette(c("#FF0000", "#FF7F00", "#FFFF00", "#00FF00", "#0000FF" , "#9400D3")))
+load("Data.RData")
 ```
 
 ## Training Plan for Sub-19 Minute 5K
@@ -93,6 +26,14 @@ Special Thanks to Tanner Geary, UBC Thunderbirds Track And Field, for putting to
 
 
 ```{r Week1, echo = FALSE, warning = FALSE}
+m <- list(
+  l = 40,
+  r = 40,
+  b = 30,
+  t = 70
+)
+map_key <- 'AIzaSyC2_ZQpyvUMYMm2FZh3HouwqavsnF8QRG4'
+lstPalette <- list(stroke_colour = colorRampPalette(c("#FF0000", "#FF7F00", "#FFFF00", "#00FF00", "#0000FF" , "#9400D3")))
 trainingWeeks <- htmltools::tagList()
 maps <- c()
 dates <- seq(as.Date("2018/2/26"), Sys.Date(), by = "day")
@@ -137,14 +78,9 @@ p <- p %>% add_trace(x = RunningData[RunningData$RunType == "Long",]$Date, y = R
   
   p <- p %>% layout(barmode = "stack",  title = paste("<b>Training Plan Week", i, "-", signif(sum(RunningData$Distance), 4), "km", "</b>"), xaxis = list(title = "Date"), yaxis = list(title = "Distance (km)"), margin = m)
   
-  trainingWeeks[[i]] <- p
   
-  maps[[i]] <- google_map(key = map_key, data = RunningData, width = 1000) %>%
-  add_polylines(polyline = "Polylines", stroke_colour = "Day", stroke_weight = 4, stroke_opacity = 0.8, legend = T, palette = lstPalette)
+  trainingWeeks[[i]] <- list(p, google_map(key = map_key, data = RunningData, width = 1000) %>%
+  add_polylines(polyline = "Polylines", stroke_colour = "Day", stroke_weight = 4, stroke_opacity = 0.8, legend = T, palette = lstPalette))
 }
-
-trainingWeeks[[1]]
-maps[[1]]
-trainingWeeks[[2]]
-maps[[2]]
+trainingWeeks
 ```

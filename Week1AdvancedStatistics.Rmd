@@ -1,0 +1,41 @@
+---
+title: "Training Statistics"
+author: "Samir Rehmtulla"
+date: "February 26, 2018"
+output: 
+  html_document:
+    keep_md: true
+always_allow_html: yes
+---
+
+```{r, echo = FALSE}
+load(file = "Data.RData")
+```
+
+```{r setup, include=FALSE}
+library(lubridate)
+library(plotly)
+library(stringr)
+library(plyr)
+library(sp)
+library(googleway)
+library(webshot)
+knitr::opts_chunk$set(echo = TRUE)
+load("Data.RData")
+```
+
+## Week 1 Advanced Statistics
+
+```{r advancedStats, echo=FALSE, warning=FALSE}
+plots <- htmltools::tagList()
+
+RunningWeek <- RunningDataList[[weekOfPlan]]
+SteadyRuns <- RunningWeek[RunningWeek$RunType == "Steady",]
+for(i in 1:nrow(SteadyRuns)) {
+  p <- plot_ly(SteadyRuns, x = SteadyRuns$DistanceStreams[[i]], y = SteadyRuns$VelocityStreams[[i]], type = "scatter", mode = "lines+markers")
+  plots[[i]] <- as_widget(p)
+}
+
+plots
+
+```
