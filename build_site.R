@@ -29,8 +29,6 @@ urlP3 <- rep("?", length(ids))
 urlP4 <- rep("/streams?keys=time,distance,velocity_smooth&key_by_type=true&", length(ids))
 PolylineURLs <- paste(urlP1, ids, urlP3, urlP2, sep="")
 StreamURLs <- paste(urlP1, ids, urlP4, urlP2, sep= "")
-print(StreamURLs)
-print(PolylineURLs)
 Polylines <- c()
 DistanceStreams <- c()
 TimeStreams <- c()
@@ -79,7 +77,6 @@ RunningData$DistanceStreams <- DistanceStreams
 RunningData$TimeStreams <- TimeStreams
 RunningData$VelocityStreams <- VelocityStreams
 OriginalRunningData <- RunningData
-pander::pandoc.t
 RunningDataList <- split(RunningData, RunningData$Week)
 save(RunningDataList, file = "data.RData")
 rmarkdown::render_site()

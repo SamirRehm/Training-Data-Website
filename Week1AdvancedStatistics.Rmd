@@ -2,6 +2,7 @@
 output: 
   html_document:
     keep_md: true
+    self_contained: false
 always_allow_html: yes
 ---
 
@@ -36,7 +37,7 @@ plots <- htmltools::tagList()
 RunningWeek <- RunningDataList[[weekOfPlan]]
 SteadyRuns <- RunningWeek[RunningWeek$RunType == "Steady",]
 for(i in 1:nrow(SteadyRuns)) {
-  p <- plot_ly(SteadyRuns, height = 250, x = SteadyRuns$TimeStreams[[i]]/60, y = SteadyRuns$VelocityStreams[[i]], type = "scatter", mode = "lines+markers", name = "Raw Data")
+  p <- plot_ly(SteadyRuns, height = 250, x = SteadyRuns$TimeStreams[[i]]/60, y = SteadyRuns$VelocityStreams[[i]], type = "scatter", mode = "lines", name = "Raw Data")
   smooth <- smooth.spline(SteadyRuns$TimeStreams[[i]]/60, SteadyRuns$VelocityStreams[[i]], spar = 1)
   smoothData <- data.frame(smooth$x, smooth$y)
   p <- p %>% add_trace(smoothData, x=smoothData$smooth.x, y=smoothData$smooth.y, name = 'Smoothened Data')

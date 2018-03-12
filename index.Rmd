@@ -4,6 +4,7 @@ author: "Samir Rehmtulla"
 date: "February 26, 2018"
 output: 
   html_document:
+    self_contained: false
     keep_md: true
 always_allow_html: yes
 ---
@@ -15,8 +16,18 @@ library(stringr)
 library(plyr)
 library(sp)
 library(googleway)
+library(gridExtra)
+library(htmltools)
 load("Data.RData")
 ```
+
+<style type="text/css">
+.main-container {
+  max-width: 1800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+</style>
 
 ## Training Plan for Sub-19 Minute 5K
 
@@ -26,11 +37,12 @@ Special Thanks to Tanner Geary, UBC Thunderbirds Track And Field, for putting to
 
 
 ```{r Week1, echo = FALSE, warning = FALSE}
+options(width = 1000)
 m <- list(
-  l = 40,
-  r = 40,
-  b = 30,
-  t = 70
+  l = 30,
+  r = 0,
+  b = 0,
+  t = 30
 )
 map_key <- 'AIzaSyC2_ZQpyvUMYMm2FZh3HouwqavsnF8QRG4'
 lstPalette <- list(stroke_colour = colorRampPalette(c("#FF0000", "#FF7F00", "#FFFF00", "#00FF00", "#0000FF" , "#9400D3")))
@@ -41,7 +53,7 @@ dates <- seq(as.Date("2018/2/26"), Sys.Date(), by = "day")
 for(i in 1:length(RunningDataList)) {
   dates <- seq(as.Date("2018/2/26") + 7*(i-1), as.Date("2018/2/26") + 7*(i - 1) + 6, by = "day")
   RunningData <- RunningDataList[[i]]
-  p <- plot_ly(width = 850, height = 515, type = "bar", hoverinfo = "all")
+  p <- plot_ly(width = 615, height = 505, type = "bar", hoverinfo = "all")
   
   p <- p %>% add_trace(p, x = dates, y = integer(length(dates)), showlegend = F)
   
@@ -76,11 +88,18 @@ p <- p %>% add_trace(x = RunningData[RunningData$RunType == "Long",]$Date, y = R
     p <- p %>% add_trace(x = RunningData[RunningData$RunType == "Tempo",]$Date, y = RunningData[RunningData$RunType == "Tempo",]$Distance, text = RunningData[RunningData$RunType == "Tempo",]$Pace, textposition = 'auto', marker = list(color = 'rgba(50, 100, 150, 0.6)', line = list(color = 'rgb(8,48,107)', width = 2)), name = "Tempo Surges")
   }
   
-  p <- p %>% layout(barmode = "stack",  title = paste("<b>Training Plan Week", i, "-", signif(sum(RunningData$Distance), 4), "km", "</b>"), xaxis = list(title = "Date"), yaxis = list(title = "Distance (km)"), margin = m)
-  
-  
-  trainingWeeks[[i]] <- list(p, google_map(key = map_key, data = RunningData, width = 1000) %>%
+  p <- p %>% layout(barmode = "stack",  title = paste("<b>Training Plan Week", i, "-", signif(sum(RunningData$Distance), 4), "km", "</b>"), xaxis = list(title = "Date"), yaxis = list(title = "Distance (km)"), margin = m, legend = list(x=0, y=-0.15, xanchor='left', yanchor='top', orientation = 'h'))
+
+  p <- as_widget(p)
+  map <- (google_map(key = map_key, data = RunningData, width = 550, height = 500, zoom = 3) %>%
   add_polylines(polyline = "Polylines", stroke_colour = "Day", stroke_weight = 4, stroke_opacity = 0.8, legend = T, palette = lstPalette))
+  
+  
+  trainingWeeks[[i]] <- tags$div(
+    style = "display: flex; flex-wrap: wrap",
+    tags$div(p, style = "width: 53%; padding: 1em; border: solid;"),
+     tags$div(map, style = "width: 47%; padding: 1em; border: solid;")
+)
 }
 trainingWeeks
 ```
