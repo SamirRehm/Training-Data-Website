@@ -19,6 +19,7 @@ library(sp)
 library(googleway)
 library(webshot)
 library(pander)
+library(rpart)
 knitr::opts_chunk$set(echo = TRUE)
 load("Data.RData")
 ```
@@ -31,7 +32,7 @@ load("Data.RData")
 
 
 ### Steady State Workouts
-```{r advancedStats, echo=FALSE, warning=FALSE, results='asis'}
+```{r advancedStats, echo=FALSE, warning=FALSE}
 plots <- htmltools::tagList()
 
 RunningWeek <- RunningDataList[[weekOfPlan]]
@@ -46,4 +47,37 @@ for(i in 1:nrow(SteadyRuns)) {
 }
 plots
 
+```
+
+
+```{r advancedTempoSetup, echo=FALSE, warning=FALSE}
+plots <- htmltools::tagList()
+intervals <- c()
+TempoRuns <- RunningWeek[RunningWeek$RunType == "Tempo",]
+numTempoRuns <- nrow(TempoRuns)
+TempoString <- "Tempo Surge Workouts"
+```
+
+### `r if(numTempoRuns > 0) {TempoString}`
+```{r advancedStatsTempo, echo=FALSE, warning=FALSE}
+plots <- htmltools::tagList()
+intervals <- c()
+TempoRuns <- RunningWeek[RunningWeek$RunType == "Tempo",]
+if(nrow(TempoRuns) > 0) {
+for(i in 1:nrow(TempoRuns)) {
+    tempoTimeStreams <- TempoRuns$TimeStreams[[i]]
+    tempoVelocityStreams <- TempoRuns$VelocityStreams[[i]]
+    tempoData <- data.frame(tempoTimeStreams, tempoVelocityStreams)
+    p <- plot_ly(TempoRuns, height = 250, x = TempoRuns$TimeStreams[[i]]/60, y = TempoRuns$VelocityStreams[[i]], type = "scatter", mode = "lines", name = "Raw Data") %>% layout(title = paste("Tempo Run on", TempoRuns$Date[[i]]), xaxis = list(title = "Time (minutes)"), yaxis = list(title = "Speed (m/s)"))
+    tree <- rpart(data = tempoData, formula = tempoVelocityStreams ~ tempoTimeStreams, control=rpart.control(cp = 0.05))
+    s <- seq(0, max(tempoTimeStreams), by=.5)
+    pieceWise <- data.frame(tempoTimeStreams, predict(tree, data.frame(tempoTimeStreams)))
+    p <- p %>% add_trace(data = pieceWise, x = tempoTimeStreams/60, y = pieceWise$predict.tree..data.frame.tempoTimeStreams.., name = "Interval Fit")
+    intervalPaces <- unique(1/(pieceWise$predict.tree..data.frame.tempoTimeStreams..) * (1000/60))
+    intervalPaces <- paste(paste(paste(floor(intervalPaces), ":", str_pad(round((intervalPaces - floor(intervalPaces))*60), 2, pad = "0"), "/km", sep = ""), collapse = ", ", sep = ", "), sep = "")
+    intervalPaces <- paste("Interval Paces:", intervalPaces, sep = " ")
+    plots[[i]] <- list(p, intervalPaces)
+}
+}
+plots
 ```

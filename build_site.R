@@ -71,8 +71,8 @@ Pace <- paste("<b>", floor(Pace), ":", str_pad(round((Pace - floor(Pace))*60), 2
 RunningData <- data.frame(RActivites$start_date_local, RActivites$distance/1000.0, RActivites$moving_time, RunType, Pace, Polylines)
 RunningData <- rename(RunningData, c("RActivites.start_date_local" = "Date", "RActivites.distance.1000" = "Distance", "RActivites.moving_time" = "Time"))
 RunningData$Day <- weekdays(as.Date(RunningData$Date))
-i <- rep(RunningData$Date[[1]], 17)
-RunningData$Week <- ((as.numeric(difftime(RunningData$Date, i, units = "days"))) %/% 7) + 1
+i <- rep(RunningData$Date[[1]], nrow(RunningData))
+RunningData$Week <- as.numeric(floor(difftime(RunningData$Date, i, units = "weeks") + 0.01) + 1)
 RunningData$DistanceStreams <- DistanceStreams
 RunningData$TimeStreams <- TimeStreams
 RunningData$VelocityStreams <- VelocityStreams
