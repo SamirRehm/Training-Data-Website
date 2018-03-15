@@ -34,6 +34,7 @@ load("Data.RData")
 ### Steady State Workouts
 ```{r advancedStats, echo=FALSE, warning=FALSE}
 plots <- htmltools::tagList()
+gpsScores <- c()
 
 RunningWeek <- RunningDataList[[weekOfPlan]]
 SteadyRuns <- RunningWeek[RunningWeek$RunType == "Steady",]
@@ -43,7 +44,7 @@ for(i in 1:nrow(SteadyRuns)) {
   smoothData <- data.frame(smooth$x, smooth$y)
   p <- p %>% add_trace(smoothData, x=smoothData$smooth.x, y=smoothData$smooth.y, name = 'Smoothened Data')
   p <- p %>% layout(title = paste("Steady State Run on", SteadyRuns$Date[[i]], "-", "Steady Score:", signif((1 - (1/(1+exp(-17* (sd(smoothData$smooth.y) -0.25))))) * 100, 2), "%"), xaxis = list(title = "Time (minutes)"), yaxis = list(title = "Speed (m/s)"), margin = list(t = 60, b = 40))
-  plots[[i]] <- list(as_widget(p))
+  plots[[i]] <- list(paste("GPS Score:", signif(100/(1 + exp(sum(diff(SteadyRuns$TimeStreams[[i]])^2)/SteadyRuns$TimeStreams[[i]][length(SteadyRuns$TimeStreams[[i]])] - 6)), 3)), "%", as_widget(p))
 }
 plots
 
@@ -59,8 +60,10 @@ TempoString <- "Tempo Surge Workouts"
 ```
 
 ### `r if(numTempoRuns > 0) {TempoString}`
-```{r advancedStatsTempo, echo=FALSE, warning=FALSE}
+```{r advancedStatsTempo, echo=FALSE, warning=FALSE, results='asis'}
 plots <- htmltools::tagList()
+gpsScores <- c()
+
 intervals <- c()
 TempoRuns <- RunningWeek[RunningWeek$RunType == "Tempo",]
 if(nrow(TempoRuns) > 0) {
@@ -76,7 +79,7 @@ for(i in 1:nrow(TempoRuns)) {
     intervalPaces <- unique(1/(pieceWise$predict.tree..data.frame.tempoTimeStreams..) * (1000/60))
     intervalPaces <- paste(paste(paste(floor(intervalPaces), ":", str_pad(round((intervalPaces - floor(intervalPaces))*60), 2, pad = "0"), "/km", sep = ""), collapse = ", ", sep = ", "), sep = "")
     intervalPaces <- paste("Interval Paces:", intervalPaces, sep = " ")
-    plots[[i]] <- list(p, intervalPaces)
+    plots[[i]] <- list(p, intervalPaces, paste(cat(paste("  \nGPS Score:", signif(100/(1+exp(sum(diff(tempoTimeStreams)^2)/tempoTimeStreams[[length(tempoTimeStreams)]] - 6)),2)), "%")))
 }
 }
 plots

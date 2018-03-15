@@ -77,6 +77,7 @@ RunningData$DistanceStreams <- DistanceStreams
 RunningData$TimeStreams <- TimeStreams
 RunningData$VelocityStreams <- VelocityStreams
 OriginalRunningData <- RunningData
+write.csv(OriginalRunningData, "RunningData.csv")
 RunningDataList <- split(RunningData, RunningData$Week)
 save(RunningDataList, file = "data.RData")
 rmarkdown::render_site()
