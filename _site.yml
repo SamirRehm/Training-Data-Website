@@ -16,6 +16,8 @@ navbar:
       href: report_2.html
     - text: Week 3
       href: report_3.html
+    - text: Week 4
+      href: report_3.html
 output:
   html_document:
     lib_dir: site_libs

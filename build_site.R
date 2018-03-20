@@ -69,7 +69,7 @@ Pace <- RActivites$moving_time/RActivites$distance/60*1000
 Pace <- paste("<b>", floor(Pace), ":", str_pad(round((Pace - floor(Pace))*60), 2, pad = "0"), "/km", "</b>", sep = "")
 
 RunningData <- data.frame(RActivites$start_date_local, RActivites$distance/1000.0, RActivites$moving_time, RunType, Pace, Polylines)
-RunningData <- rename(RunningData, c("RActivites.start_date_local" = "Date", "RActivites.distance.1000" = "Distance", "RActivites.moving_time" = "Time"))
+RunningData <- plyr::rename(RunningData, c("RActivites.start_date_local" = "Date", "RActivites.distance.1000" = "Distance", "RActivites.moving_time" = "Time"))
 RunningData$Day <- weekdays(as.Date(RunningData$Date))
 i <- rep(RunningData$Date[[1]], nrow(RunningData))
 RunningData$Week <- as.numeric(floor(difftime(RunningData$Date, i, units = "weeks") + 0.01) + 1)
@@ -77,7 +77,6 @@ RunningData$DistanceStreams <- DistanceStreams
 RunningData$TimeStreams <- TimeStreams
 RunningData$VelocityStreams <- VelocityStreams
 OriginalRunningData <- RunningData
-write.csv(OriginalRunningData, "RunningData.csv")
 RunningDataList <- split(RunningData, RunningData$Week)
 save(RunningDataList, file = "data.RData")
 rmarkdown::render_site()
